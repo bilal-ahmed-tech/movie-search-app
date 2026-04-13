@@ -33,7 +33,7 @@ function MovieDetail() {
       <FiFilm className="text-6xl mx-auto mb-4 text-gray-600" />
       <p className="text-white text-xl">{error}</p>
       <button
-        onClick={() => navigate("/")}
+        onClick={() => navigate(-1)}
         className="mt-4 px-6 py-2 bg-red-500 text-white rounded-xl"
       >
         Go Back

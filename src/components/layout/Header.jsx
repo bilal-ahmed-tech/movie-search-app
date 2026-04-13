@@ -1,4 +1,4 @@
-import { NavLink } from "react-router-dom"
+import { NavLink , Link } from "react-router-dom"
 import { FiFilm, FiHeart } from "react-icons/fi"
 
 function Header() {
@@ -6,8 +6,10 @@ function Header() {
     <header className="bg-gray-900 border-b border-gray-800 px-4 py-4">
       <div className="max-w-7xl mx-auto flex items-center justify-between">
         <div className="flex items-center gap-2 text-white">
-          <FiFilm className="text-2xl text-red-500" />
-          <span className="text-xl font-bold">MovieSearch</span>
+          <Link to="/"><FiFilm className="text-2xl text-red-500" /></Link>
+          <Link to="/" className="text-xl font-bold">
+            MovieSearch
+          </Link>
         </div>
         <nav className="flex items-center gap-6">
           <NavLink
@@ -15,7 +17,7 @@ function Header() {
             className={({ isActive }) =>
               isActive
                 ? "text-red-500 font-semibold"
-                : "text-gray-400 hover:text-white transition-colors"
+                : "text-gray-400 hover:text-white font-semibold transition-colors"
             }
           >
             Home
@@ -25,7 +27,7 @@ function Header() {
             className={({ isActive }) =>
               isActive
                 ? "text-red-500 font-semibold"
-                : "text-gray-400 hover:text-white transition-colors"
+                : "text-gray-400 hover:text-white font-semibold transition-colors"
             }
           >
             <FiHeart className="inline mr-1" />
