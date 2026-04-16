@@ -1,139 +1,86 @@
-import { useState, useEffect } from "react";
-import {
-  searchMoviesByTitle,
-  getPopularMovies,
-  getGenres,
-  getMoviesByGenre,
-} from "../services/movieService";
+import { getCached, setCached, buildCacheKey } from "../utils/cache"
 
-export function useSearch() {
-  const [movies, setMovies] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [loadingMore, setLoadingMore] = useState(false);
-  const [error, setError] = useState(null);
-  const [query, setQuery] = useState("");
-  const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(false);
-  const [genres, setGenres] = useState([]);
-  const [selectedGenre, setSelectedGenre] = useState(null);
+const API_KEY = import.meta.env.VITE_TMDB_API_KEY
+const BASE_URL = "https://api.themoviedb.org/3"
 
-  // Load genres on mount
-  useEffect(() => {
-    async function fetchGenres() {
-      try {
-        const data = await getGenres();
-        setGenres(data);
-      } catch (err) {
-        console.error("Failed to fetch genres:", err);
-      }
-    }
-    fetchGenres();
-  }, []);
+export async function searchMoviesByTitle(title, page = 1) {
+  const cacheKey = buildCacheKey("search", title, page)
+  const cached = getCached(cacheKey)
+  if (cached) return cached
 
-  // Load popular movies on mount
-  useEffect(() => {
-    loadPopular();
-  }, []);
+  const response = await fetch(
+    `${BASE_URL}/search/movie?query=${encodeURIComponent(title)}&page=${page}&api_key=${API_KEY}`
+  )
+  if (!response.ok) throw new Error("Failed to fetch movies")
 
-  async function searchMovies(title, pageNum = 1) {
-    if (!title.trim()) return;
-
-    if (pageNum === 1) {
-      setLoading(true);
-      setMovies([]);
-      setSelectedGenre(null);
-    } else {
-      setLoadingMore(true);
-    }
-
-    setError(null);
-
-    try {
-      const { results, totalPages } = await searchMoviesByTitle(title, pageNum);
-      setMovies((prev) => (pageNum === 1 ? results : [...prev, ...results]));
-      setQuery(title);
-      setPage(pageNum);
-      setHasMore(pageNum < totalPages);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-      setLoadingMore(false);
-    }
+  const data = await response.json()
+  if (data.results.length === 0) {
+    throw new Error("No movies found. Try a different search.")
   }
 
-  async function searchByGenre(genre, pageNum = 1) {
-    if (pageNum === 1) {
-      setLoading(true);
-      setMovies([]);
-      setQuery("");
-      setSelectedGenre(genre);
-    } else {
-      setLoadingMore(true);
-    }
+  const result = { results: data.results, totalPages: data.total_pages }
+  setCached(cacheKey, result) 
+  return result
+}
 
-    setError(null);
+export async function searchMovieById(id) {
+  const cacheKey = buildCacheKey("movie", id)
+  const cached = getCached(cacheKey)
+  if (cached) return cached
 
-    try {
-      const { results, totalPages } = await getMoviesByGenre(genre.id, pageNum);
-      setMovies((prev) => (pageNum === 1 ? results : [...prev, ...results]));
-      setPage(pageNum);
-      setHasMore(pageNum < totalPages);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-      setLoadingMore(false);
-    }
-  }
+  const response = await fetch(
+    `${BASE_URL}/movie/${id}?api_key=${API_KEY}&append_to_response=credits`
+  )
+  if (!response.ok) throw new Error("Failed to fetch movie details")
 
-  async function loadPopular(pageNum = 1) {
-    if (pageNum === 1) {
-      setLoading(true);
-      setSelectedGenre(null); 
-      setQuery(""); 
-      setMovies([]);
-    } else {
-      setLoadingMore(true);
-    }
+  const data = await response.json()
+  setCached(cacheKey, data, 30 * 60 * 1000) 
+  return data
+}
 
-    setError(null);
+export async function getPopularMovies(page = 1) {
+  const cacheKey = buildCacheKey("popular", page)
+  const cached = getCached(cacheKey)
+  if (cached) return cached
 
-    try {
-      const { results, totalPages } = await getPopularMovies(pageNum);
-      setMovies((prev) => (pageNum === 1 ? results : [...prev, ...results]));
-      setPage(pageNum);
-      setHasMore(pageNum < totalPages);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-      setLoadingMore(false);
-    }
-  }
+  const response = await fetch(
+    `${BASE_URL}/movie/popular?page=${page}&api_key=${API_KEY}`
+  )
+  if (!response.ok) throw new Error("Failed to fetch popular movies")
 
-  async function loadMore() {
-    if (query) {
-      await searchMovies(query, page + 1);
-    } else if (selectedGenre) {
-      await searchByGenre(selectedGenre, page + 1);
-    } else {
-      await loadPopular(page + 1);
-    }
-  }
+  const data = await response.json()
+  const result = { results: data.results, totalPages: data.total_pages }
+  setCached(cacheKey, result, 10 * 60 * 1000) 
+  return result
+}
 
-  return {
-    movies,
-    loading,
-    loadingMore,
-    error,
-    query,
-    hasMore,
-    genres,
-    selectedGenre,
-    searchMovies,
-    searchByGenre,
-    loadMore,
-    loadPopular,
-  };
+export async function getGenres() {
+  const cacheKey = buildCacheKey("genres")
+  const cached = getCached(cacheKey)
+  if (cached) return cached
+
+  const response = await fetch(
+    `${BASE_URL}/genre/movie/list?api_key=${API_KEY}`
+  )
+  if (!response.ok) throw new Error("Failed to fetch genres")
+
+  const data = await response.json()
+  setCached(cacheKey, data.genres, 60 * 60 * 1000) 
+  return data.genres
+}
+
+export async function getMoviesByGenre(genreId, page = 1) {
+  const cacheKey = buildCacheKey("genre", genreId, page)
+  const cached = getCached(cacheKey)
+  if (cached) return cached
+
+  const response = await fetch(
+    `${BASE_URL}/discover/movie?with_genres=${genreId}&page=${page}&api_key=${API_KEY}`
+  )
+  if (!response.ok) throw new Error("Failed to fetch movies")
+
+  const data = await response.json()
+  const result = { results: data.results, totalPages: data.total_pages }
+  setCached(cacheKey, result) 
+  return result
 }

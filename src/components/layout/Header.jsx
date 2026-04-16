@@ -3,15 +3,15 @@ import { FiFilm, FiHeart } from "react-icons/fi"
 
 function Header() {
   return (
-    <header className="bg-gray-900 border-b border-gray-800 px-4 py-4">
+    <header className="bg-gray-900 border-b border-gray-800 px-2 sm:px-4 py-4">
       <div className="max-w-7xl mx-auto flex items-center justify-between">
         <div className="flex items-center gap-2 text-white">
-          <Link to="/"><FiFilm className="text-2xl text-red-500" /></Link>
-          <Link to="/" className="text-xl font-bold">
+          <Link to="/"><FiFilm className="text-xl sm:text-2xl text-red-500" /></Link>
+          <Link to="/" className="text-base sm:text-xl font-bold">
             MovieSearch
           </Link>
         </div>
-        <nav className="flex items-center gap-6">
+        <nav className="flex items-center gap-3 sm:gap-6">
           <NavLink
             to="/"
             className={({ isActive }) =>

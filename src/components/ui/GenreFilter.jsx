@@ -14,7 +14,7 @@ function GenreFilter({ genres, selectedGenre, onSelect }) {
 
         <button
           onClick={() => onSelect(null)}
-          className={`flex-shrink-0 md:flex-initial px-4 py-2 rounded-full text-sm font-semibold
+          className={`shrink-0 md:flex-initial px-4 py-2 rounded-full text-sm font-semibold
                       transition-all duration-200
                       ${
                         selectedGenre === null
@@ -28,7 +28,7 @@ function GenreFilter({ genres, selectedGenre, onSelect }) {
           <button
             key={genre.id}
             onClick={() => onSelect(genre)}
-            className={`flex-shrink-0 md:flex-initial px-4 py-2 rounded-full text-sm font-semibold
+            className={`shrink-0 md:flex-initial px-4 py-2 rounded-full text-sm font-semibold
                         transition-all duration-200
                         ${
                           selectedGenre?.id === genre.id
