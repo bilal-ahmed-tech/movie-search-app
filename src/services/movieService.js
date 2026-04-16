@@ -9,7 +9,7 @@ export async function searchMoviesByTitle(title, page = 1) {
   if (cached) return cached
 
   const response = await fetch(
-    `${BASE_URL}/search/movie?query=${encodeURIComponent(title)}&page=${page}&api_key=${API_KEY}`
+    `${BASE_URL}/search/movie?query=${encodeURIComponent(title)}&page=${page}&include_adult=false&api_key=${API_KEY}`
   )
   if (!response.ok) throw new Error("Failed to fetch movies")
 
@@ -19,7 +19,7 @@ export async function searchMoviesByTitle(title, page = 1) {
   }
 
   const result = { results: data.results, totalPages: data.total_pages }
-  setCached(cacheKey, result)
+  setCached(cacheKey, result) 
   return result
 }
 
@@ -29,12 +29,12 @@ export async function searchMovieById(id) {
   if (cached) return cached
 
   const response = await fetch(
-    `${BASE_URL}/movie/${id}?api_key=${API_KEY}&append_to_response=credits`
+    `${BASE_URL}/movie/${id}?include_adult=false&api_key=${API_KEY}&append_to_response=credits`
   )
   if (!response.ok) throw new Error("Failed to fetch movie details")
 
   const data = await response.json()
-  setCached(cacheKey, data)
+  setCached(cacheKey, data, 30 * 60 * 1000) 
   return data
 }
 
@@ -44,18 +44,18 @@ export async function getPopularMovies(page = 1) {
   if (cached) return cached
 
   const response = await fetch(
-    `${BASE_URL}/movie/popular?page=${page}&api_key=${API_KEY}`
+    `${BASE_URL}/movie/popular?page=${page}&include_adult=false&api_key=${API_KEY}`
   )
   if (!response.ok) throw new Error("Failed to fetch popular movies")
 
   const data = await response.json()
   const result = { results: data.results, totalPages: data.total_pages }
-  setCached(cacheKey, result)
+  setCached(cacheKey, result, 10 * 60 * 1000)
   return result
 }
 
 export async function getGenres() {
-  const cacheKey = "genres"
+  const cacheKey = buildCacheKey("genres")
   const cached = getCached(cacheKey)
   if (cached) return cached
 
@@ -65,7 +65,7 @@ export async function getGenres() {
   if (!response.ok) throw new Error("Failed to fetch genres")
 
   const data = await response.json()
-  setCached(cacheKey, data.genres)
+  setCached(cacheKey, data.genres, 60 * 60 * 1000) 
   return data.genres
 }
 
@@ -75,12 +75,12 @@ export async function getMoviesByGenre(genreId, page = 1) {
   if (cached) return cached
 
   const response = await fetch(
-    `${BASE_URL}/discover/movie?with_genres=${genreId}&page=${page}&api_key=${API_KEY}`
+    `${BASE_URL}/discover/movie?with_genres=${genreId}&page=${page}&include_adult=false&api_key=${API_KEY}`
   )
   if (!response.ok) throw new Error("Failed to fetch movies")
 
   const data = await response.json()
   const result = { results: data.results, totalPages: data.total_pages }
-  setCached(cacheKey, result)
+  setCached(cacheKey, result) 
   return result
 }
