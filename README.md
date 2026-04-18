@@ -1,6 +1,6 @@
-# 🎬 MovieSearch
+﻿# 🎬 MovieSearch
 
-A modern movie discovery app built with React, powered by the TMDB API.
+A modern movie discovery app built with React and Vite, powered by the TMDB API.
 
 🔗 **Live Demo:** [moviesearch-delta-one.vercel.app](https://moviesearch-delta-one.vercel.app/)
 
@@ -8,26 +8,29 @@ A modern movie discovery app built with React, powered by the TMDB API.
 
 ## ✨ Features
 
-- 🔍 Search millions of movies and TV shows
-- 🎭 Browse by genre
-- 📄 Detailed movie pages with cast, crew, budget & more
-- ❤️ Save favourites with localStorage persistence
+- 🔍 Search movies by title with instant results
+- 🎭 Filter movies by genre
+- 📄 Movie detail pages with cast, crew, release info, budget, revenue, and trailer
+- 👤 Person pages with biography and filmography
+- 🎞️ Similar movies displayed on movie detail pages
+- ❤️ Save favourites with `localStorage` persistence
+- 🔙 Back button restores scroll and view state
 - 📱 Fully responsive design
-- ⚡ Memory caching for instant repeat searches
-- 🔄 Load more pagination
+- ⚡ Cached search results for faster repeat queries
+- 🔄 Load more pagination with skeleton loading
 - 🌐 Back to top button
-- 💀 Skeleton loading states
-- 🚫 Graceful error handling
+- 🚫 Route-level error handling
+- 🖼️ Poster fallback handling for missing images
 
 ---
 
 ## 🛠️ Built With
 
 - **React** — UI library
-- **Vite** — Build tool
-- **Tailwind CSS** — Styling
-- **React Router** — Navigation
-- **TMDB API** — Movie data
+- **Vite** — Build tool and development server
+- **Tailwind CSS** — Utility-first styling
+- **React Router** — Client-side routing
+- **TMDB API** — Movie and person data
 - **React Icons** — Icon library
 
 ---
@@ -39,36 +42,46 @@ A modern movie discovery app built with React, powered by the TMDB API.
 
 ```plaintext
 src/
+├── assets/
 ├── components/
 │   ├── layout/
 │   │   ├── Header.jsx
 │   │   └── MainLayout.jsx
 │   └── ui/
-│       ├── MovieCard.jsx
-│       ├── SearchBar.jsx
-│       ├── GenreFilter.jsx
-│       ├── SkeletonCard.jsx
-│       ├── EmptyState.jsx
 │       ├── BackToTop.jsx
-│       └── Button.jsx
+│       ├── Button.jsx
+│       ├── CastList.jsx
+│       ├── EmptyState.jsx
+│       ├── GenreFilter.jsx
+│       ├── HomeSkeleton.jsx
+│       ├── MovieCard.jsx
+│       ├── RouteErrorBoundary.jsx
+│       ├── ScrollToTop.jsx
+│       ├── SearchBar.jsx
+│       ├── SkeletonCard.jsx
+│       └── TrailerModal.jsx
+├── constants/
+│   └── index.js
+├── hooks/
+│   ├── useFavourites.js
+│   ├── useInfiniteScroll.js
+│   ├── useMovieDetail.js
+│   ├── usePageTitle.js
+│   ├── usePersonDetail.js
+│   ├── useScroll.js
+│   ├── useSearch.js
+│   └── useTrailer.js
 ├── pages/
+│   ├── Favourites.jsx
 │   ├── Home.jsx
 │   ├── MovieDetail.jsx
-│   ├── Favourites.jsx
-│   └── NotFound.jsx
-├── hooks/
-│   ├── useSearch.js
-│   ├── useMovieDetail.js
-│   ├── useFavourites.js
-│   ├── useScroll.js
-│   └── usePageTitle.js
+│   ├── NotFound.jsx
+│   └── Person.jsx
 ├── services/
 │   └── movieService.js
 ├── utils/
-│   ├── helpers.js
-│   └── cache.js
-├── constants/
-│   └── index.js
+│   ├── cache.js
+│   └── helpers.js
 └── App.jsx
 ```
 
@@ -89,26 +102,62 @@ src/
 # Clone the repository
 git clone https://github.com/bilal-ahmed-tech/movie-search-app
 
-# Navigate to project
+# Navigate to the project folder
 cd movie-search-app
 
 # Install dependencies
 npm install
 
-# Create .env file
-echo "VITE_TMDB_API_KEY=your_api_key_here" > .env
+# Create a .env file
+printf "VITE_TMDB_API_KEY=your_api_key_here" > .env
 
-# Start development server
+# Start the development server
 npm run dev
 ```
+
+### Build for production
+
+```bash
+npm run build
+```
+
+### Preview production build
+
+```bash
+npm run preview
+```
+
+---
+
+## 🔧 Available Scripts
+
+- `npm run dev` — Start Vite development server
+- `npm run build` — Build production bundle
+- `npm run preview` — Preview production build locally
+- `npm run lint` — Run ESLint
 
 ---
 
 ## 🔑 Environment Variables
 
+Create a `.env` file in the project root with:
+
 ```env
 VITE_TMDB_API_KEY=your_tmdb_api_key
 ```
+
+---
+
+## 🧠 Key Concepts Used
+
+- Custom React hooks for search, movie details, favourites, scroll, and trailers
+- Client-side routing with `react-router-dom`
+- `localStorage` persistence for favourites
+- Search caching for faster repeat queries
+- Skeleton UI states while loading
+- Lazy-loaded routes for code splitting
+- Error boundary handling for route failures
+- Responsive layout and mobile-first design
 
 ---
 
@@ -122,20 +171,8 @@ VITE_TMDB_API_KEY=your_tmdb_api_key
 
 ---
 
-## 🧠 Key Concepts Used
-
-- Custom hooks (`useSearch`, `useMovieDetail`, `useFavourites`)
-- Memory caching with `Map`
-- React Router dynamic routes
-- `localStorage` persistence
-- Skeleton loading states
-- Error boundaries
-- Responsive design
-
----
-
 ## 📝 License
 
-MIT License — feel free to use this project for learning or portfolio purposes.
+MIT License
 
-*Built as a portfolio project to showcase React, API integration, and performance optimization techniques.*
+*Built as a portfolio project to showcase React, Vite, API integration, and responsive UI design.*
