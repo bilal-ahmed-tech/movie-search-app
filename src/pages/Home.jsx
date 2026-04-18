@@ -1,5 +1,7 @@
+import { useCallback, useMemo } from "react";
 import { useSearch } from "../hooks/useSearch";
 import { useFavourites } from "../hooks/useFavourites";
+import { useInfiniteScroll } from "../hooks/useInfiniteScroll";
 import SearchBar from "../components/ui/SearchBar";
 import MovieCard from "../components/ui/MovieCard";
 import SkeletonCard from "../components/ui/SkeletonCard";
@@ -7,6 +9,7 @@ import EmptyState from "../components/ui/EmptyState";
 import GenreFilter from "../components/ui/GenreFilter";
 import { FiFilm, FiLoader } from "react-icons/fi";
 import { usePageTitle } from "../hooks/usePageTitle";
+
 function Home() {
   usePageTitle(null);
 
@@ -24,23 +27,53 @@ function Home() {
     loadMore,
     loadPopular,
   } = useSearch();
+
   const { addFavourite, removeFavourite, isFavourite } = useFavourites();
+  // Memoized favourite handler
+  const handleFavourite = useCallback(
+    (movie) => {
+      if (isFavourite(movie.id)) {
+        removeFavourite(movie.id);
+      } else {
+        addFavourite(movie);
+      }
+    },
+    [isFavourite, addFavourite, removeFavourite]
+  );
 
-  function handleFavourite(movie) {
-    if (isFavourite(movie.id)) {
-      removeFavourite(movie.id);
-    } else {
-      addFavourite(movie);
-    }
-  }
+  // Memoized genre selection handler
+  const handleGenreSelect = useCallback(
+    (genre) => {
+      if (genre === null) {
+        loadPopular();
+      } else {
+        searchByGenre(genre);
+      }
+    },
+    [loadPopular, searchByGenre]
+  );
 
-  function handleGenreSelect(genre) {
-    if (genre === null) {
-      loadPopular(); 
-    } else {
-      searchByGenre(genre);
-    }
-  }
+  // Deduplicate movies by ID to prevent duplicate keys warning
+  const uniqueMovies = useMemo(() => {
+    const seen = new Set();
+    return movies.filter((movie) => {
+      if (seen.has(movie.id)) return false;
+      seen.add(movie.id);
+      return true;
+    });
+  }, [movies]);
+
+  // Attach sentinel for infinite scroll
+  const { sentinelRef } = useInfiniteScroll({
+    hasMore,
+    loading,
+    loadingMore,
+    onLoadMore: loadMore,
+  });
+
+  // Determine if we should show empty state
+  const showEmptyState =
+    !loading && !error && uniqueMovies.length === 0 && (query || selectedGenre);
 
   return (
     <div>
@@ -69,7 +102,7 @@ function Home() {
           <span className="text-white font-semibold">"{query}"</span>
         </p>
       )}
-      {selectedGenre && (
+      {selectedGenre && !query && (
         <p className="text-gray-400 mb-4">
           Browsing{" "}
           <span className="text-white font-semibold">{selectedGenre.name}</span>
@@ -84,15 +117,21 @@ function Home() {
           message={error}
         />
       )}
+
       {/* Empty Results */}
-      {!loading && !error && movies.length === 0 && query && (
+      {showEmptyState && (
         <EmptyState
           icon={FiFilm}
           title="No movies found"
-          message={`We couldn't find any movies for "${query}"`}
+          message={
+            query
+              ? `We couldn't find any movies for "${query}"`
+              : `No movies available in "${selectedGenre?.name}"`
+          }
         />
       )}
-      {/* Loading State */}
+
+      {/* Initial Loading State */}
       {loading && (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
           {Array.from({ length: 10 }).map((_, i) => (
@@ -101,10 +140,14 @@ function Home() {
         </div>
       )}
 
-      {/* Movies Grid */}
-      {!loading && !error && movies.length > 0 && (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-          {movies.map((movie) => (
+      {/* Movies Grid with live region for screen readers */}
+      {!loading && !error && uniqueMovies.length > 0 && (
+        <div
+          className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4"
+          aria-live="polite"
+          aria-busy={loadingMore}
+        >
+          {uniqueMovies.map((movie) => (
             <MovieCard
               key={movie.id}
               movie={movie}
@@ -115,36 +158,16 @@ function Home() {
         </div>
       )}
 
-      {/* Load More */}
-      {hasMore && !loading && !error && (
-        <div className="flex justify-center mt-10">
-          <button
-            onClick={loadMore}
-            disabled={loadingMore}
-            className="flex items-center gap-2 px-8 py-3
-                       bg-red-500 hover:bg-red-600 text-white
-                       rounded-xl font-semibold transition-all
-                       duration-200 active:scale-95
-                       disabled:opacity-50">
-            {loadingMore ? (
-              <>
-                <FiLoader className="animate-spin" />
-                Loading...
-              </>
-            ) : (
-              "Load More"
-            )}
-          </button>
+      {/* Load More Spinner (no extra skeletons) */}
+      {loadingMore && (
+        <div className="flex justify-center mt-4">
+          <FiLoader className="animate-spin text-red-500 text-2xl" />
         </div>
       )}
 
-      {/* Load More Skeleton */}
-      {loadingMore && (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 mt-4">
-          {Array.from({ length: 10 }).map((_, i) => (
-            <SkeletonCard key={i} />
-          ))}
-        </div>
+      {/* Sentinel — invisible div that triggers infinite scroll */}
+      {hasMore && !error && (
+        <div ref={sentinelRef} className="h-10 mt-4" aria-hidden="true" />
       )}
     </div>
   );
