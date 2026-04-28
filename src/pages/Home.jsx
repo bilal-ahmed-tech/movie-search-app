@@ -25,6 +25,7 @@ function Home() {
     searchMovies,
     searchByGenre,
     loadMore,
+    clearSearch,
     loadPopular,
   } = useSearch();
 
@@ -38,7 +39,7 @@ function Home() {
         addFavourite(movie);
       }
     },
-    [isFavourite, addFavourite, removeFavourite]
+    [isFavourite, addFavourite, removeFavourite],
   );
 
   // Memoized genre selection handler
@@ -50,7 +51,7 @@ function Home() {
         searchByGenre(genre);
       }
     },
-    [loadPopular, searchByGenre]
+    [loadPopular, searchByGenre],
   );
 
   // Deduplicate movies by ID to prevent duplicate keys warning
@@ -85,7 +86,11 @@ function Home() {
         <p className="text-gray-400 text-center mb-6">
           Search from millions of movies and TV shows
         </p>
-        <SearchBar onSearch={searchMovies} loading={loading} />
+        <SearchBar
+          onSearch={searchMovies}
+          onClear={clearSearch}
+          loading={loading}
+        />
       </div>
 
       {/* Genre Filter */}
@@ -145,8 +150,7 @@ function Home() {
         <div
           className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4"
           aria-live="polite"
-          aria-busy={loadingMore}
-        >
+          aria-busy={loadingMore}>
           {uniqueMovies.map((movie) => (
             <MovieCard
               key={movie.id}

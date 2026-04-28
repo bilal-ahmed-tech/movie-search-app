@@ -1,13 +1,24 @@
-import { NavLink , Link } from "react-router-dom"
+import { NavLink, Link, useLocation } from "react-router-dom"
 import { FiFilm, FiHeart } from "react-icons/fi"
 
-function Header() {
+function Header({ onLogoClick }) {
+  const location = useLocation();
+
+  const handleLogoClick = () => {
+    // Only clear if already on home page
+    if (location.pathname === '/' && onLogoClick) {
+      onLogoClick();
+    }
+  }
+
   return (
     <header className="bg-gray-900 border-b border-gray-800 px-2 sm:px-4 py-4">
-      <div className="max-w-7xl mx-auto flex items-center justify-between">
+      <nav className="max-w-7xl mx-auto flex items-center justify-between">
         <div className="flex items-center gap-2 text-white">
-          <Link to="/"><FiFilm className="text-xl sm:text-2xl text-red-500" /></Link>
-          <Link to="/" className="text-base sm:text-xl font-bold">
+          <Link to="/" onClick={handleLogoClick}>
+            <FiFilm className="text-xl sm:text-2xl text-red-500" />
+          </Link>
+          <Link to="/" onClick={handleLogoClick} className="text-base sm:text-xl font-bold">
             MovieSearch
           </Link>
         </div>
@@ -34,7 +45,7 @@ function Header() {
             Favourites
           </NavLink>
         </nav>
-      </div>
+      </nav>
     </header>
   )
 }
